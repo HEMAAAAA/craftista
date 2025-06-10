@@ -102,6 +102,9 @@ app.get('/votingservice-status', (req, res) => {
         });
 });
 
+app.get('/health', (req, res) => {
+    res.status(200).json({ status: 'healthy' });
+});
 
 app.get('/daily-origami', (req, res) => {
     axios.get(config.recommendationBaseUri + '/api/origami-of-the-day')

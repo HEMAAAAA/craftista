@@ -21,5 +21,5 @@ func StartAPI() {
 
 	// TODO: Add more routes as needed
 	
-	r.Run(":8080")  // start the server on port 8080
+	r.Run(":8000")  // start the server on port 8080
 }
