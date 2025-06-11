@@ -1,7 +1,11 @@
 FROM maven:3.8-eclipse-temurin-17 AS builder
 WORKDIR /app
+
+# Install necessary packages
+RUN apt-get update && apt-get install -y ca-certificates && update-ca-certificates
+
 COPY pom.xml .
-RUN mvn dependency:go-offline
+RUN ./mvnw dependency:go-offline
 COPY src ./src
 RUN mvn package -DskipTests
 

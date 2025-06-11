@@ -49,12 +49,12 @@ pipeline {
                 }
             }
         }
-        
-        
+         
     }
     
     post {
         always {
+            sh 'docker logout'
             cleanWs()
         }
         success {
@@ -68,22 +68,17 @@ pipeline {
 
 def buildAndPushDockerImage(String serviceName) {
     script {
-        // Login to DockerHub
         withCredentials([usernamePassword(credentialsId: 'dockerhub', passwordVariable: 'DOCKERHUB_PASSWORD', usernameVariable: 'DOCKERHUB_USERNAME')]) {
-            sh "docker login -u ${env.DOCKERHUB_USERNAME} -p ${env.DOCKERHUB_PASSWORD}"
-            // Build the Docker image
-            sh "docker build -t ${env.DOCKERHUB_REPO}/${serviceName}:${env.BUILD_NUMBER} ."
-        }
-        
-        // Push the Docker image
-        docker.withRegistry('https://registry.hub.docker.com', 'dockerhub') {
-            sh "docker push ${env.DOCKERHUB_REPO}/${serviceName}:${env.BUILD_NUMBER}"
+            sh 'echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin'
             
-            // Optionally push as 'latest'
-            sh "docker tag ${env.DOCKERHUB_REPO}/${serviceName}:${env.BUILD_NUMBER} ${env.DOCKERHUB_REPO}/${serviceName}:latest"
-            sh "docker push ${env.DOCKERHUB_REPO}/${serviceName}:latest"
+            sh """
+                docker build -t ${env.DOCKERHUB_REPO}/${serviceName}:${env.VERSION} .
+                docker tag ${env.DOCKERHUB_REPO}/${serviceName}:${env.VERSION} ${env.DOCKERHUB_REPO}/${serviceName}:latest
+                docker push ${env.DOCKERHUB_REPO}/${serviceName}:${env.VERSION}
+                docker push ${env.DOCKERHUB_REPO}/${serviceName}:latest
+            """
         }
         
-        echo "Successfully pushed ${env.DOCKERHUB_REPO}/${serviceName}:${env.BUILD_NUMBER} to DockerHub"
+        echo "Successfully pushed ${env.DOCKERHUB_REPO}/${serviceName}:${env.VERSION} to DockerHub"
     }
 }
